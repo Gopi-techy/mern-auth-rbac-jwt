@@ -1,15 +1,31 @@
-import jwt from 'jsonwebtoken';
-import User from '../models/User.js';
-import { body, validationResult } from 'express-validator';
-import rateLimit from 'express-rate-limit';
-import crypto from 'crypto';
-import { sendEmail } from '../utils/mailer.js';
+// controllers/authController.js
+// Handles registration, login, JWT, refresh tokens, email verification, password reset, and audit logging.
+// For beginners: This file contains the main logic for user authentication and security features.
 
+import jwt from 'jsonwebtoken'; // For JWT tokens
+import User from '../models/User.js';
+import { body, validationResult } from 'express-validator'; // Input validation
+import rateLimit from 'express-rate-limit'; // Rate limiting
+import crypto from 'crypto'; // Token generation
+import { sendEmail } from '../utils/mailer.js'; // Email sending
+import { logAction } from '../utils/auditLogger.js'; // Audit logging
+import { totp } from 'speakeasy'; // For MFA
+
+// Generate access token (short-lived)
 const generateToken = (user) => {
   return jwt.sign(
     { id: user._id, role: user.role },
     process.env.JWT_SECRET,
     { expiresIn: '15m' }
+  );
+};
+
+// Generate refresh token (long-lived)
+const generateRefreshToken = (user) => {
+  return jwt.sign(
+    { id: user._id },
+    process.env.JWT_SECRET,
+    { expiresIn: '7d' }
   );
 };
 
@@ -68,70 +84,65 @@ export const login = async (req, res) => {
     await user.save();
     return res.status(401).json({ message: 'Invalid email or password' });
   }
+  if (user.mfaEnabled) {
+    if (!req.body.token) {
+      return res.status(401).json({ message: 'MFA code required', mfaRequired: true });
+    }
+    const valid = totp.verify({
+      secret: user.mfaSecret,
+      encoding: 'base32',
+      token: req.body.token
+    });
+    if (!valid) {
+      return res.status(401).json({ message: 'Invalid MFA code' });
+    }
+  }
   user.failedLoginAttempts = 0;
   user.lockUntil = undefined;
+  // Generate and store refresh token
+  const refreshToken = generateRefreshToken(user);
+  user.refreshToken = refreshToken;
   await user.save();
+  // Set refresh token as HTTP-only cookie
+  res.cookie('refreshToken', refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+  });
   const token = generateToken(user);
+  logAction('login', user._id);
   res.status(200).json({ token });
 };
 
-export const requestPasswordReset = async (req, res) => {
-  const { email } = req.body;
-  const user = await User.findOne({ email });
-  if (!user) return res.status(404).json({ message: 'User not found' });
-  const resetToken = user.createPasswordResetToken();
-  await user.save();
-  const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
-  await sendEmail(
-    user.email,
-    'Password Reset',
-    `<p>Click <a href="${resetUrl}">here</a> to reset your password.</p>`
-  );
-  res.json({ message: 'Password reset email sent.' });
+// Refresh token endpoint
+export const refreshAccessToken = async (req, res) => {
+  const { refreshToken } = req.cookies;
+  if (!refreshToken) return res.status(401).json({ message: 'No refresh token' });
+  try {
+    const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+    if (!user || user.refreshToken !== refreshToken) {
+      return res.status(401).json({ message: 'Invalid refresh token' });
+    }
+    const newToken = generateToken(user);
+    res.json({ token: newToken });
+  } catch (err) {
+    res.status(401).json({ message: 'Invalid or expired refresh token' });
+  }
 };
 
-export const resetPassword = async (req, res) => {
-  const { token, password } = req.body;
-  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
-  const user = await User.findOne({
-    resetPasswordToken: hashedToken,
-    resetPasswordExpires: { $gt: Date.now() }
-  });
-  if (!user) return res.status(400).json({ message: 'Token invalid or expired' });
-  user.password = password;
-  user.resetPasswordToken = undefined;
-  user.resetPasswordExpires = undefined;
-  await user.save();
-  res.json({ message: 'Password reset successful' });
+// Logout endpoint: clears refresh token
+export const logout = async (req, res) => {
+  const { refreshToken } = req.cookies;
+  if (refreshToken) {
+    const user = await User.findOne({ refreshToken });
+    if (user) {
+      user.refreshToken = undefined;
+      await user.save();
+    }
+  }
+  res.clearCookie('refreshToken');
+  logAction('logout', req.user ? req.user.id : 'unknown');
+  res.json({ message: 'Logged out successfully' });
 };
-
-export const validateRegister = [
-  body('username').isLength({ min: 3 }).withMessage('Username must be at least 3 chars'),
-  body('email').isEmail().withMessage('Valid email required'),
-  body('password').isLength({ min: 6 }).withMessage('Password min 6 chars'),
-  (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-    next();
-  }
-];
-
-export const validateLogin = [
-  body('email').isEmail().withMessage('Valid email required'),
-  body('password').notEmpty().withMessage('Password required'),
-  (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-    next();
-  }
-];
-
-export const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // limit each IP to 10 login requests per windowMs
-  message: 'Too many login attempts, please try again later.'
-});

@@ -1,13 +1,22 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "MERN Auth RBAC JWT Backend with Advanced Security, MFA, and OAuth 2.0",
+  "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js"
   },
-  "keywords": [],
+  "keywords": [
+    "auth",
+    "rbac",
+    "jwt",
+    "mfa",
+    "oauth",
+    "mern",
+    "express",
+    "mongodb"
+  ],
   "author": "",
   "license": "ISC",
   "type": "module",
@@ -18,11 +27,18 @@
     "express": "^5.1.0",
     "express-rate-limit": "^7.5.1",
     "express-validator": "^7.2.1",
+    "helmet": "^7.0.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.16.0",
-    "nodemailer": "^7.0.3"
+    "nodemailer": "^7.0.3",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
+    "qrcode": "^1.5.3",
+    "speakeasy": "^2.0.0",
+    "cookie-parser": "^1.4.6"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
-  }
+  },
+  "_comment": "\nREADME for Beginners:\n- 'start': Runs the production server.\n- 'dev': Runs the development server with auto-reload.\n- 'bcryptjs': Password hashing.\n- 'cors': Cross-Origin Resource Sharing.\n- 'dotenv': Loads environment variables.\n- 'express': Web server framework.\n- 'express-rate-limit': Protects against brute-force attacks.\n- 'express-validator': Validates user input.\n- 'helmet': Adds security headers.\n- 'jsonwebtoken': Handles JWT tokens for authentication.\n- 'mongoose': MongoDB object modeling.\n- 'nodemailer': Sends emails (verification, reset, etc).\n- 'passport' & 'passport-google-oauth20': Google OAuth 2.0 login.\n- 'qrcode' & 'speakeasy': For Multi-Factor Authentication (MFA).\n- 'cookie-parser': Parses cookies for refresh tokens.\n- 'nodemon': Auto-reloads server in development.\n\nFor more details, see the README.md and code comments in each JS file.\n"
 }

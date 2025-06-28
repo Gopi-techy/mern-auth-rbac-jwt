@@ -1,16 +1,20 @@
 {
   "info": {
     "_postman_id": "mern-auth-rbac-jwt-collection",
-    "name": "MERN Auth RBAC JWT API",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    "name": "MERN Auth RBAC JWT API (Advanced)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_comment": "This Postman collection covers all major authentication, MFA, OAuth, and admin/user flows. Each request name describes its purpose. See the README for a beginner-friendly guide."
   },
   "item": [
     {
-      "name": "Register",
+      "name": "Register (Email/Password)",
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Content-Type", "value": "application/json" }
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
         ],
         "body": {
           "mode": "raw",
@@ -19,18 +23,28 @@
         "url": {
           "raw": "http://localhost:5000/api/auth/register",
           "protocol": "http",
-          "host": ["localhost"],
+          "host": [
+            "localhost"
+          ],
           "port": "5000",
-          "path": ["api", "auth", "register"]
+          "path": [
+            "api",
+            "auth",
+            "register"
+          ]
         }
-      }
+      },
+      "description": "Register a new user with username, email, and password."
     },
     {
-      "name": "Verify Email",
+      "name": "Verify Email (Paste Token from Email)",
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Content-Type", "value": "application/json" }
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
         ],
         "body": {
           "mode": "raw",
@@ -39,38 +53,100 @@
         "url": {
           "raw": "http://localhost:5000/api/auth/verify-email",
           "protocol": "http",
-          "host": ["localhost"],
+          "host": [
+            "localhost"
+          ],
           "port": "5000",
-          "path": ["api", "auth", "verify-email"]
+          "path": [
+            "api",
+            "auth",
+            "verify-email"
+          ]
         }
-      }
+      },
+      "description": "Verify a user's email address using the token sent to their email."
     },
     {
-      "name": "Login",
+      "name": "Login (Email/Password, MFA optional)",
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Content-Type", "value": "application/json" }
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
+          "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\",\n  \"token\": \"<mfa_code_if_enabled>\"\n}"
         },
         "url": {
           "raw": "http://localhost:5000/api/auth/login",
           "protocol": "http",
-          "host": ["localhost"],
+          "host": [
+            "localhost"
+          ],
           "port": "5000",
-          "path": ["api", "auth", "login"]
+          "path": [
+            "api",
+            "auth",
+            "login"
+          ]
         }
-      }
+      },
+      "description": "Login with email and password. If MFA is enabled, provide the MFA code as well."
     },
     {
-      "name": "Request Password Reset",
+      "name": "Refresh JWT (uses cookie)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/api/auth/refresh-token",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "auth",
+            "refresh-token"
+          ]
+        }
+      },
+      "description": "Get a new JWT access token using the refresh token stored in the cookie."
+    },
+    {
+      "name": "Logout (clears refresh token)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/api/auth/logout",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "auth",
+            "logout"
+          ]
+        }
+      },
+      "description": "Logout the user and clear the refresh token cookie."
+    },
+    {
+      "name": "Request Password Reset (Email)",
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Content-Type", "value": "application/json" }
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
         ],
         "body": {
           "mode": "raw",
@@ -79,18 +155,28 @@
         "url": {
           "raw": "http://localhost:5000/api/auth/request-password-reset",
           "protocol": "http",
-          "host": ["localhost"],
+          "host": [
+            "localhost"
+          ],
           "port": "5000",
-          "path": ["api", "auth", "request-password-reset"]
+          "path": [
+            "api",
+            "auth",
+            "request-password-reset"
+          ]
         }
-      }
+      },
+      "description": "Request a password reset email."
     },
     {
-      "name": "Reset Password",
+      "name": "Reset Password (Paste Token from Email)",
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Content-Type", "value": "application/json" }
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
         ],
         "body": {
           "mode": "raw",
@@ -99,27 +185,268 @@
         "url": {
           "raw": "http://localhost:5000/api/auth/reset-password",
           "protocol": "http",
-          "host": ["localhost"],
+          "host": [
+            "localhost"
+          ],
           "port": "5000",
-          "path": ["api", "auth", "reset-password"]
+          "path": [
+            "api",
+            "auth",
+            "reset-password"
+          ]
         }
-      }
+      },
+      "description": "Reset the user's password using the token sent to their email."
     },
     {
-      "name": "Protected Route",
+      "name": "Enable MFA (Get QR)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwt_token}}"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:5000/api/mfa/enable",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "mfa",
+            "enable"
+          ]
+        }
+      },
+      "description": "Enable multi-factor authentication (MFA) for the user. Returns a QR code to scan with an authenticator app."
+    },
+    {
+      "name": "Verify MFA (Enable)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwt_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"token\": \"123456\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/mfa/verify",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "mfa",
+            "verify"
+          ]
+        }
+      },
+      "description": "Verify the MFA code to enable multi-factor authentication for the user."
+    },
+    {
+      "name": "Google OAuth Login (Browser)",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "http://localhost:5000/api/oauth/google",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "oauth",
+            "google"
+          ]
+        }
+      },
+      "description": "Start Google OAuth 2.0 login flow. This will open a browser window."
+    },
+    {
+      "name": "Google OAuth Callback (handled by browser)",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "http://localhost:5000/api/oauth/google/callback",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "oauth",
+            "google",
+            "callback"
+          ]
+        }
+      },
+      "description": "Callback endpoint for Google OAuth 2.0. Usually handled by the browser."
+    },
+    {
+      "name": "Protected Route (JWT)",
       "request": {
         "method": "GET",
         "header": [
-          { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwt_token}}"
+          }
         ],
         "url": {
           "raw": "http://localhost:5000/api/auth/protected",
           "protocol": "http",
-          "host": ["localhost"],
+          "host": [
+            "localhost"
+          ],
           "port": "5000",
-          "path": ["api", "auth", "protected"]
+          "path": [
+            "api",
+            "auth",
+            "protected"
+          ]
         }
-      }
+      },
+      "description": "Access a protected route using a valid JWT token."
+    },
+    {
+      "name": "Get All Users (Admin)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwt_token}}"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:5000/api/user/users",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "user",
+            "users"
+          ]
+        }
+      },
+      "description": "Admin: Get a list of all users."
+    },
+    {
+      "name": "Delete User (Admin)",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwt_token}}"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:5000/api/user/users/:id",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "user",
+            "users",
+            ":id"
+          ]
+        }
+      },
+      "description": "Admin: Delete a user by ID."
+    },
+    {
+      "name": "Update User Role (Admin)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwt_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"role\": \"admin\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/user/users/:id/role",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "user",
+            "users",
+            ":id",
+            "role"
+          ]
+        }
+      },
+      "description": "Admin: Update a user's role (e.g., promote to admin)."
+    },
+    {
+      "name": "Update Profile (User)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwt_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"newname\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/user/me",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "user",
+            "me"
+          ]
+        }
+      },
+      "description": "User: Update your own profile (username)."
     }
   ]
 }

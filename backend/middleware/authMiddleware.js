@@ -1,5 +1,10 @@
+// middleware/authMiddleware.js
+// Protects routes by requiring a valid JWT token. Also handles refresh token logic.
+// For beginners: Use this to secure routes so only logged-in users can access them.
+
 import jwt from 'jsonwebtoken';
 
+// Middleware to protect routes (require JWT)
 export const protect = (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith('Bearer ')) {
@@ -15,6 +20,7 @@ export const protect = (req, res, next) => {
   }
 };
 
+// Endpoint to refresh JWT using a refresh token
 export const refreshToken = (req, res) => {
   const { token } = req.body;
   if (!token) return res.status(400).json({ message: 'No token provided' });
