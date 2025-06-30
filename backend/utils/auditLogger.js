@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 
 // Path to the audit log file (in backend directory)
-const logFile = path.join(process.cwd(), 'backend', 'audit.log');
+const logFile = path.join(process.cwd(), 'audit.log');
 
 // Log an action (action name, user ID, optional details)
 export const logAction = (action, userId, details = '') => {

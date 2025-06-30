@@ -3,6 +3,13 @@
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import User from '../models/User.js';
+import dotenv from 'dotenv';
+dotenv.config();
+
+
+// Debug: Log Google OAuth env variables to verify they are loaded
+console.log('GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID);
+console.log('GOOGLE_CLIENT_SECRET:', process.env.GOOGLE_CLIENT_SECRET);
 
 // Configure Google OAuth strategy
 passport.use(new GoogleStrategy({

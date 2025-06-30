@@ -2,8 +2,10 @@
 // Main entry point for the backend server. Sets up Express, security, routes, and database connection.
 // For beginners: This file wires together all the features (auth, MFA, OAuth, admin, etc.)
 
-import express from 'express';
 import dotenv from 'dotenv';
+dotenv.config();
+
+import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet'; // Adds security headers
 import cookieParser from 'cookie-parser'; // Parses cookies for refresh tokens
@@ -14,7 +16,6 @@ import mfaRoutes from './routes/mfaRoutes.js'; // Multi-factor authentication en
 import passport from './config/passport.js'; // OAuth 2.0 config
 import oauthRoutes from './routes/oauthRoutes.js'; // OAuth 2.0 endpoints
 
-dotenv.config();
 const app = express();
 
 // Security best practices

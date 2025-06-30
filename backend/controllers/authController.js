@@ -115,6 +115,13 @@ export const login = async (req, res) => {
   res.status(200).json({ token });
 };
 
+// Rate limiter for login endpoint (prevents brute-force attacks)
+export const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // Limit each IP to 10 login requests per windowMs
+  message: 'Too many login attempts from this IP, please try again after 15 minutes.'
+});
+
 // Refresh token endpoint
 export const refreshAccessToken = async (req, res) => {
   const { refreshToken } = req.cookies;
@@ -146,3 +153,67 @@ export const logout = async (req, res) => {
   logAction('logout', req.user ? req.user.id : 'unknown');
   res.json({ message: 'Logged out successfully' });
 };
+
+// Request password reset: send email with reset token
+export const requestPasswordReset = async (req, res) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+  if (!user) return res.status(200).json({ message: 'If that email is registered, a reset link has been sent.' });
+  const resetToken = crypto.randomBytes(32).toString('hex');
+  const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+  user.passwordResetToken = hashedToken;
+  user.passwordResetExpires = Date.now() + 60 * 60 * 1000; // 1 hour
+  await user.save();
+  const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
+  await sendEmail(
+    user.email,
+    'Password Reset Request',
+    `<p>Click <a href="${resetUrl}">here</a> to reset your password. This link is valid for 1 hour.</p>`
+  );
+  logAction('requestPasswordReset', user._id);
+  res.status(200).json({ message: 'If that email is registered, a reset link has been sent.' });
+};
+
+// Reset password using token
+export const resetPassword = async (req, res) => {
+  const { token, password } = req.body;
+  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: Date.now() }
+  });
+  if (!user) return res.status(400).json({ message: 'Token invalid or expired' });
+  user.password = password;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+  await user.save();
+  logAction('resetPassword', user._id);
+  res.json({ message: 'Password reset successful. You can now log in.' });
+};
+
+// Input validation for registration
+export const validateRegister = [
+  body('username').notEmpty().withMessage('Username is required'),
+  body('email').isEmail().withMessage('Valid email is required'),
+  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    next();
+  }
+];
+
+// Input validation for login
+export const validateLogin = [
+  body('email').isEmail().withMessage('Valid email is required'),
+  body('password').notEmpty().withMessage('Password is required'),
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    next();
+  }
+];
