@@ -17,5 +17,4 @@ A production-ready **Authentication and Role-Based Authorization** system built 
 
 ---
 
-## 📁 Project Structure
 
