@@ -161,8 +161,8 @@ export const requestPasswordReset = async (req, res) => {
   if (!user) return res.status(200).json({ message: 'If that email is registered, a reset link has been sent.' });
   const resetToken = crypto.randomBytes(32).toString('hex');
   const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-  user.passwordResetToken = hashedToken;
-  user.passwordResetExpires = Date.now() + 60 * 60 * 1000; // 1 hour
+  user.resetPasswordToken = hashedToken;
+  user.resetPasswordExpires = Date.now() + 60 * 60 * 1000; // 1 hour
   await user.save();
   const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
   await sendEmail(
@@ -179,13 +179,13 @@ export const resetPassword = async (req, res) => {
   const { token, password } = req.body;
   const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
   const user = await User.findOne({
-    passwordResetToken: hashedToken,
-    passwordResetExpires: { $gt: Date.now() }
+    resetPasswordToken: hashedToken,
+    resetPasswordExpires: { $gt: Date.now() }
   });
   if (!user) return res.status(400).json({ message: 'Token invalid or expired' });
   user.password = password;
-  user.passwordResetToken = undefined;
-  user.passwordResetExpires = undefined;
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpires = undefined;
   await user.save();
   logAction('resetPassword', user._id);
   res.json({ message: 'Password reset successful. You can now log in.' });

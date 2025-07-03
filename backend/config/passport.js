@@ -7,10 +7,6 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 
-// Debug: Log Google OAuth env variables to verify they are loaded
-console.log('GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID);
-console.log('GOOGLE_CLIENT_SECRET:', process.env.GOOGLE_CLIENT_SECRET);
-
 // Configure Google OAuth strategy
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID, // Google client ID from .env
